@@ -1,0 +1,311 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv='Content-Type' content='text/html;charset=UTF-8' />
+
+    <!-- Load UI5, select gold reflection theme and the "commons" and "table" control libraries -->
+    <script id='sap-ui-bootstrap' type='text/javascript'
+            src='https://sapui5.hana.ondemand.com/resources/sap-ui-core.js'
+            data-sap-ui-theme='sap_bluecrystal'
+            data-sap-ui-libs='sap.ui.commons,sap.ui.table,sap.m'></script>
+    <!-- only load the mobile lib "sap.m" and the "sap_bluecrystal" theme -->
+
+    <script>
+    
+    var oAppHeader = new sap.ui.commons.ApplicationHeader("appHeader");
+	//configure the branding area
+	oAppHeader.setLogoSrc("/pic/cat_logo.png");
+	oAppHeader.setLogoText("Welcome to Cat management system");
+
+	//configure the welcome area
+    oAppHeader.setDisplayWelcome(true);
+	oAppHeader.setUserName("Cat manager");
+    //configure the log off area
+	oAppHeader.setDisplayLogoff(true);
+    oAppHeader.placeAt("content");
+
+        // setting up model
+        var oModel = new sap.ui.model.json.JSONModel("jsondata.php", false);
+            sap.ui.getCore().setModel(oModel);
+//            console.log(oModel.getProperty("CatData/0/image"));
+
+            /*****   CREATE Operation  *****/
+            function openCreateDialog(){
+                var oCreateDialog = new sap.ui.commons.Dialog();
+                oCreateDialog.setTitle("Create cat");
+                var oSimpleForm = new sap.ui.layout.form.SimpleForm({
+                    maxContainerCols: 2,
+                    content:[
+                        new sap.ui.core.Title({text:"cat"}),
+                        new sap.ui.commons.Label({text:"id"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({ text: "sex" }),
+                        new sap.m.RadioButton({
+                            text: "男生",
+                            groupName: "G1",
+                            editable: true
+//                            selected: gender_radio(cat[1].getValue())
+                        }),
+                        new sap.m.RadioButton({
+                            text: "女生",
+                            groupName: "G1",
+                            editable: true
+  //                          selected: !gender_radio(cat[1].getValue())
+                        }),
+//                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"color"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"years"}),
+                        new sap.ui.commons.TextField({value:""}),
+                        new sap.ui.commons.Label({text:"where_adopt"}),
+                        new sap.ui.commons.TextField({value:""}),
+                    ]
+                });
+                oCreateDialog.addContent(oSimpleForm);
+                oCreateDialog.addButton(
+                    new sap.ui.commons.Button({
+                        text: "Submit",
+                        press: function() {
+                            var content = oSimpleForm.getContent();
+                            var oEntry = {};
+                            oEntry.id = content[2].getValue();
+                            oEntry.sex = set_gender(content[4].getSelected(), content[5].getSelected());
+                            oEntry.color = content[7].getValue();
+                            oEntry.years = content[9].getValue();
+                            oEntry.where_adopt = content[11].getValue();
+
+                            // Post data to the server
+                            oModel.loadData("http://localhost/test2/adddata.php", oEntry, true, 'POST');
+							location.reload();
+                        }
+                    })
+                );
+                oCreateDialog.open();
+            };
+
+            /*****   PUT Operation  *****/
+            function openUpdateDialog(cat){
+                var oUpdateDialog = new sap.ui.commons.Dialog();
+                oUpdateDialog.setTitle("Update cat data");
+                var oSimpleForm = new sap.ui.layout.form.SimpleForm({
+                    maxContainerCols: 2,
+                    content:[
+                        new sap.ui.core.Title({text:"cat"}),
+                        new sap.ui.commons.Label({text:"id"}),
+                        new sap.ui.commons.TextField({value: cat[0].getValue(), editable: false}),
+                        new sap.ui.commons.Label({ text: "sex" }),
+                        new sap.m.RadioButton({
+                            text: "男生",
+                            groupName: "G1",
+                            editable: true,
+                            selected: gender_radio(cat[1].getValue())
+                        }),
+                        new sap.m.RadioButton({
+                            text: "女生",
+                            groupName: "G1",
+                            editable: true,
+                            selected: !gender_radio(cat[1].getValue())
+                        }),
+//                        new sap.ui.commons.TextField({value: cat[1].getValue()}),
+                        new sap.ui.commons.Label({text:"color"}),
+                        new sap.ui.commons.TextField({value: cat[2].getValue()}),
+                        new sap.ui.commons.Label({text:"years"}),
+                        new sap.ui.commons.TextField({value: cat[3].getValue()}),
+                        new sap.ui.commons.Label({text:"where_adopt"}),
+                        new sap.ui.commons.TextField({ value: cat[4].getValue() }),
+//                        new sap.ui.commons.Label({ text: "Image" }),
+//                        new sap.ui.commons.Image({ src: cat[5].getValue() }),
+                    ]
+                });
+                oUpdateDialog.addContent(oSimpleForm);
+                oUpdateDialog.addButton(
+                    new sap.ui.commons.Button({
+                        text: "Submit",
+                        press: function() {
+                            var content = oSimpleForm.getContent();
+                            var oEntry = {};
+                            oEntry.id = content[2].getValue();
+//                            oEntry.sex = content[4].getValue();
+                            oEntry.sex = set_gender(content[4].getSelected(), content[5].getSelected());
+                            oEntry.color = content[7].getValue();
+                            oEntry.years = content[9].getValue();
+                            oEntry.where_adopt = content[11].getValue();
+//                            oEntry.image = content[12].getValue();
+                            // Post data to the server
+                            oModel.loadData("http://localhost/test2/editdata.php?id=oEntry.id", oEntry, true, 'POST');						      oUpdateDialog.close();
+								location.reload();
+                        }
+                    })
+                );
+                oUpdateDialog.open();
+            };
+
+            /*****   DELETE Operation  *****/
+            function openDeleteDialog(cat) {
+                var oDeleteDialog = new sap.ui.commons.Dialog();
+                oDeleteDialog.setTitle("Delete cat");
+                var oSimpleForm = new sap.ui.layout.form.SimpleForm({
+                    maxContainerCols: 2,
+                    content:[
+                        new sap.ui.core.Title({text:"cat"}),
+                        new sap.ui.commons.Label({text:"id"}),
+                        new sap.ui.commons.TextField({value: cat[0].getValue(), editable: false}),
+                        new sap.ui.commons.Label({ text: "sex" }),
+                        new sap.ui.commons.TextField({value: cat[1].getValue(), editable: false}),
+                        new sap.ui.commons.Label({text:"color"}),
+                        new sap.ui.commons.TextField({value: cat[2].getValue(), editable: false}),
+                        new sap.ui.commons.Label({text:"years"}),
+                        new sap.ui.commons.TextField({value: cat[3].getValue(), editable: false}),
+                        new sap.ui.commons.Label({ text:"where_adopt"}),
+                        new sap.ui.commons.TextField({ value: cat[4].getValue(), editable: false }),
+//                        new sap.ui.commons.Label({ text: "Image" }),
+//                        new sap.ui.commons.Image({ src: cat[5].getValue(), editable: false }),
+                    ]
+                });
+                oDeleteDialog.addContent(oSimpleForm);
+                oDeleteDialog.addButton(
+                    new sap.ui.commons.Button({
+                        text: "Submit",
+                        press: function() {
+                            var content = oSimpleForm.getContent();
+                            var oEntry = {};
+                            oEntry.id = content[2].getValue();
+                            oEntry.sex = content[4].getValue();
+                            oEntry.color = content[6].getValue();
+                            oEntry.years = content[8].getValue();
+                            oEntry.where_adopt = content[10].getValue();
+                            // Post data to the server
+                            oModel.loadData("http://localhost/test2/deletedata.php?id=oEntry.id", oEntry, true, 'POST');
+								oDeleteDialog.close();
+								location.reload();
+                        }
+                    })
+                );
+                oDeleteDialog.open();
+            };
+            // setting up table
+            var oTable = new sap.ui.table.Table({
+                editable: false,
+                enableCellFilter: true,
+                visibleRowCount: 10,
+//                selectionMode: sap.ui.table.SelectionMode.Single,
+//                navigationMode: sap.ui.table.NavigationMode.Paginator,
+                toolbar: new sap.ui.commons.Toolbar({
+                    items: [
+                        new sap.ui.commons.Button({
+                            text: "Create cat",
+                            press: function() {
+                                openCreateDialog();
+                            },
+                        }),
+                        new sap.ui.commons.Button({
+                            text: "Update cat data",
+                            press: function() {
+                                var idx = oTable.getSelectedIndices();
+                                if (idx == -1) return;
+                                var rows = oTable.getRows();
+                                var cat = rows[idx[0]].getCells();
+                                openUpdateDialog(cat);
+                            },
+                        }),
+                        new sap.ui.commons.Button({
+                            text: "Delete cat",
+                            press: function() {
+                                var idx = oTable.getSelectedIndices();
+                                if (idx == -1) return;
+                                var rows = oTable.getRows();
+                                var cat = rows[idx[0]].getCells();
+                                openDeleteDialog(cat);
+                            },
+                        })
+                    ]
+                }),
+            });
+
+            oTable.addColumn(new sap.ui.table.Column({
+                label: 'id',
+                template: new sap.ui.commons.TextField({
+                    value: '{id}'
+                }),
+                sortProperty: "id",
+            }));
+
+        oTable.addColumn(new sap.ui.table.Column({
+            label: 'sex',
+            template: new sap.ui.commons.TextField({
+                value: '{sex}'
+            }),
+            sortProperty: "sex",
+            filterProperty: 'sex'
+            }));
+
+            oTable.addColumn(new sap.ui.table.Column({
+                label: 'color',
+                template: new sap.ui.commons.TextField({
+                    value: '{color}'
+                }),
+                sortProperty: "color",
+                filterProperty: 'color'
+            }));
+
+            oTable.addColumn(new sap.ui.table.Column({
+                label: 'years',
+                template: new sap.ui.commons.TextField({
+                    value: '{years}'
+//                    value: set_year('{years}')
+                }),
+                sortProperty: "years",
+                filterProperty: 'years',
+            }));
+
+            oTable.addColumn(new sap.ui.table.Column({
+                label:'where_adopt',
+                template: new sap.ui.commons.TextField({
+                    value: '{where_adopt}'
+                }),
+                sortProperty: "where_adopt",
+                filterProperty: 'where_adopt',
+            }));
+
+//            oTable.addColumn(new sap.ui.table.Column({
+//                label: 'Image',
+//                template: new sap.ui.commons.Image({ src: '1.jpg' }),
+//                template: new sap.ui.commons.Image (
+//                    { "src" : set_img( '{image}' ) })
+//                    src: 'data:image\\jpg;base64,'.concat(oModel.getProperty("/CatData/0/image"))
+//                })),
+//                template: new sap.ui.commons.Image({ src: 'data:image\\jpg;base64,'.concat(oModel.getData().CatData[0].image) }),
+
+//                template: new sap.ui.commons.Image({ src: 'data:image\\jpg;base64,'.concat('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') }),
+            //)); 
+
+            oTable.setModel(oModel);
+            oTable.bindRows("/catSet");
+        oTable.placeAt("content");
+        function gender_radio(a) {
+            if (a == "男生") { return true; } else { return false; }
+        };
+        function set_gender(a, b) {
+            if (a == true) { return "男生"; } else { return "女生"; }
+        } /*
+        function set_img(a) {
+            debugger;
+            return 'data:image\jpg;base64,'.a;
+        }
+        function set_year(b) {
+            debugger;
+            if (b == '1') {
+                return 'one';
+            } else {
+                return 'two';
+            }
+        } */
+    </script>
+
+</head>
+<body class="sapUiBody" role="application">
+    <div id="content"></div>
+    
+</body>
+</html>
