@@ -1,2 +1,5 @@
 # SAPUI5_MYSQL_CRUD
 SAPUI5_MYSQL_CRUD
+
+使用SAPUI5+PHP，透過MYSQL連結資料庫的HTML實作
+原出處: https://github.com/jenizar/SAPUI5_MYSQL_CRUD
